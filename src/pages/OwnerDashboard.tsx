@@ -1,0 +1,85 @@
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
+import { DashboardHeader } from '@/components/DashboardHeader';
+import { StatCard } from '@/components/StatCard';
+import { MemberTable } from '@/components/MemberTable';
+import { AddMemberForm } from '@/components/AddMemberForm';
+import { AdminPasswordForm } from '@/components/AdminPasswordForm';
+import { Users, CreditCard, IndianRupee, AlertCircle } from 'lucide-react';
+
+export default function OwnerDashboard() {
+  const { user, users } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user || user.role !== 'owner') {
+      navigate('/');
+    }
+  }, [user, navigate]);
+
+  if (!user || user.role !== 'owner') return null;
+
+  const totalMembers = users.length;
+  const paidCount = users.filter(u => u.payment_status === 'PAID').length;
+  const unpaidCount = users.filter(u => u.payment_status === 'UNPAID').length;
+  const totalAmount = users.reduce((sum, u) => sum + (u.payment_status === 'PAID' ? u.amount : 0), 0);
+
+  return (
+    <div className="min-h-screen bg-background">
+      <DashboardHeader />
+      
+      <main className="container mx-auto px-4 py-6 space-y-6">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard
+            title="Total Members"
+            value={totalMembers}
+            icon={Users}
+            description="Registered devotees"
+            variant="primary"
+          />
+          <StatCard
+            title="Paid"
+            value={paidCount}
+            icon={CreditCard}
+            description={`${((paidCount / totalMembers) * 100).toFixed(0)}% of total`}
+            variant="success"
+          />
+          <StatCard
+            title="Unpaid"
+            value={unpaidCount}
+            icon={AlertCircle}
+            description="Pending payments"
+            variant="warning"
+          />
+          <StatCard
+            title="Collected"
+            value={`₹${totalAmount.toLocaleString()}`}
+            icon={IndianRupee}
+            description="Total amount"
+            variant="default"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Admin Password Section */}
+          <div className="lg:col-span-1">
+            <AdminPasswordForm />
+          </div>
+
+          {/* Members Table */}
+          <div className="lg:col-span-3 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-heading font-semibold text-foreground">
+                All Members
+              </h2>
+              <AddMemberForm />
+            </div>
+            <MemberTable canEdit canDelete />
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}

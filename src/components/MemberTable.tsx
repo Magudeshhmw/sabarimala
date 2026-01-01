@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { User } from '@/types/auth';
+import { User, PaymentMethod, PAYMENT_RECEIVERS } from '@/types/auth';
 import { useAuth } from '@/context/AuthContext';
 import {
   Table,
@@ -26,7 +26,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Edit2, Trash2, Search, Download, Filter } from 'lucide-react';
+import { Edit2, Trash2, Search, Download, Filter, Banknote, Smartphone } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface MemberTableProps {
@@ -59,7 +59,7 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
   });
 
   const handleExport = () => {
-    const headers = ['Name', 'Mobile', 'Bag Number', 'Bus Number', 'Seat Number', 'Payment Status', 'Amount'];
+    const headers = ['Name', 'Mobile', 'Bag Number', 'Bus Number', 'Seat Number', 'Payment Status', 'Payment Method', 'Received By', 'Amount'];
     const csvContent = [
       headers.join(','),
       ...filteredUsers.map(u => [
@@ -69,6 +69,8 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
         u.bus_number,
         u.seat_number || '',
         u.payment_status,
+        u.payment_method,
+        u.payment_receiver || '',
         u.amount
       ].join(','))
     ].join('\n');
@@ -87,15 +89,6 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
     });
   };
 
-  const handlePaymentToggle = (user: User) => {
-    const newStatus = user.payment_status === 'PAID' ? 'UNPAID' : 'PAID';
-    updateUser(user.id, { payment_status: newStatus });
-    toast({
-      title: 'Payment Status Updated',
-      description: `${user.name}'s payment marked as ${newStatus}`,
-    });
-  };
-
   const handleEditOpen = (user: User) => {
     setEditingUser(user);
     setEditForm({
@@ -105,12 +98,51 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
       bus_number: user.bus_number,
       seat_number: user.seat_number || '',
       payment_status: user.payment_status,
+      payment_method: user.payment_method,
+      payment_receiver: user.payment_receiver || '',
       amount: user.amount,
+    });
+  };
+
+  const handlePaymentStatusChange = (status: 'PAID' | 'UNPAID') => {
+    if (status === 'UNPAID') {
+      setEditForm({ 
+        ...editForm, 
+        payment_status: status, 
+        payment_method: 'NONE',
+        payment_receiver: '' 
+      });
+    } else {
+      setEditForm({ ...editForm, payment_status: status });
+    }
+  };
+
+  const handlePaymentMethodChange = (method: PaymentMethod) => {
+    setEditForm({ 
+      ...editForm, 
+      payment_method: method,
+      payment_receiver: '' 
     });
   };
 
   const handleEditSave = () => {
     if (editingUser && editForm.name && editForm.mobile_number) {
+      if (editForm.payment_status === 'PAID' && editForm.payment_method === 'NONE') {
+        toast({
+          title: 'Validation Error',
+          description: 'Please select a payment method',
+          variant: 'destructive',
+        });
+        return;
+      }
+      if (editForm.payment_status === 'PAID' && !editForm.payment_receiver) {
+        toast({
+          title: 'Validation Error',
+          description: 'Please select who received the payment',
+          variant: 'destructive',
+        });
+        return;
+      }
       updateUser(editingUser.id, editForm);
       toast({
         title: 'Member Updated',
@@ -132,6 +164,10 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
       setDeleteConfirm(null);
     }
   };
+
+  const receivers = editForm.payment_method && editForm.payment_method !== 'NONE' 
+    ? PAYMENT_RECEIVERS[editForm.payment_method] 
+    : [];
 
   return (
     <div className="space-y-4">
@@ -178,7 +214,7 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
         </div>
       </div>
 
-      <div className="rounded-xl border border-border/50 overflow-hidden bg-card">
+      <div className="rounded-xl border border-border/50 overflow-hidden bg-card overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/30">
@@ -186,8 +222,9 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
               <TableHead>Mobile</TableHead>
               <TableHead>Bag #</TableHead>
               <TableHead>Bus</TableHead>
-              <TableHead>Seat</TableHead>
               <TableHead>Payment</TableHead>
+              <TableHead>Method</TableHead>
+              <TableHead>Received By</TableHead>
               <TableHead className="text-right">Amount</TableHead>
               {(canEdit || canDelete) && <TableHead className="text-right">Actions</TableHead>}
             </TableRow>
@@ -195,7 +232,7 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
           <TableBody>
             {filteredUsers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={canEdit || canDelete ? 8 : 7} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={canEdit || canDelete ? 9 : 8} className="text-center py-8 text-muted-foreground">
                   No members found
                 </TableCell>
               </TableRow>
@@ -206,21 +243,27 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
                   <TableCell className="font-mono text-sm">{user.mobile_number}</TableCell>
                   <TableCell>{user.bag_number}</TableCell>
                   <TableCell>{user.bus_number}</TableCell>
-                  <TableCell>{user.seat_number || '-'}</TableCell>
                   <TableCell>
-                    {canEdit ? (
-                      <button
-                        onClick={() => handlePaymentToggle(user)}
-                        className={user.payment_status === 'PAID' ? 'status-paid' : 'status-unpaid'}
-                      >
-                        {user.payment_status}
-                      </button>
-                    ) : (
-                      <span className={user.payment_status === 'PAID' ? 'status-paid' : 'status-unpaid'}>
-                        {user.payment_status}
+                    <span className={user.payment_status === 'PAID' ? 'status-paid' : 'status-unpaid'}>
+                      {user.payment_status}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    {user.payment_method === 'CASH' && (
+                      <span className="flex items-center gap-1 text-success text-sm">
+                        <Banknote className="w-4 h-4" /> Cash
                       </span>
                     )}
+                    {user.payment_method === 'GPAY' && (
+                      <span className="flex items-center gap-1 text-primary text-sm">
+                        <Smartphone className="w-4 h-4" /> GPay
+                      </span>
+                    )}
+                    {user.payment_method === 'NONE' && (
+                      <span className="text-muted-foreground text-sm">-</span>
+                    )}
                   </TableCell>
+                  <TableCell className="text-sm">{user.payment_receiver || '-'}</TableCell>
                   <TableCell className="text-right font-medium">₹{user.amount.toLocaleString()}</TableCell>
                   {(canEdit || canDelete) && (
                     <TableCell className="text-right">
@@ -261,7 +304,7 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
 
       {/* Edit Member Dialog */}
       <Dialog open={!!editingUser} onOpenChange={() => setEditingUser(null)}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-heading">Edit Member</DialogTitle>
             <DialogDescription>
@@ -333,7 +376,7 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
               <Label>Payment Status</Label>
               <Select
                 value={editForm.payment_status}
-                onValueChange={(value: 'PAID' | 'UNPAID') => setEditForm({ ...editForm, payment_status: value })}
+                onValueChange={handlePaymentStatusChange}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -344,6 +387,61 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
                 </SelectContent>
               </Select>
             </div>
+
+            {editForm.payment_status === 'PAID' && (
+              <>
+                <div className="space-y-2">
+                  <Label>Payment Method</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => handlePaymentMethodChange('CASH')}
+                      className={`flex items-center justify-center gap-2 p-3 rounded-lg border-2 transition-all ${
+                        editForm.payment_method === 'CASH'
+                          ? 'border-success bg-success/10 text-success'
+                          : 'border-border hover:border-muted-foreground'
+                      }`}
+                    >
+                      <Banknote className="w-5 h-5" />
+                      <span className="font-medium">Cash</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handlePaymentMethodChange('GPAY')}
+                      className={`flex items-center justify-center gap-2 p-3 rounded-lg border-2 transition-all ${
+                        editForm.payment_method === 'GPAY'
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-border hover:border-muted-foreground'
+                      }`}
+                    >
+                      <Smartphone className="w-5 h-5" />
+                      <span className="font-medium">GPay</span>
+                    </button>
+                  </div>
+                </div>
+
+                {editForm.payment_method && editForm.payment_method !== 'NONE' && (
+                  <div className="space-y-2">
+                    <Label>Received By</Label>
+                    <Select
+                      value={editForm.payment_receiver || ''}
+                      onValueChange={(value) => setEditForm({ ...editForm, payment_receiver: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select who received payment" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {receivers.map((receiver) => (
+                          <SelectItem key={receiver} value={receiver}>
+                            {receiver}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
           <div className="flex justify-end gap-3">

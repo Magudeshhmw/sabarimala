@@ -1,5 +1,5 @@
 import { User } from '@/types/auth';
-import { Mountain, Phone, Package, Bus, Armchair, CreditCard, CheckCircle, XCircle } from 'lucide-react';
+import { Mountain, Phone, Package, Bus, Armchair, CreditCard, CheckCircle, XCircle, Banknote, Smartphone } from 'lucide-react';
 
 interface UserIdCardProps {
   user: User;
@@ -71,7 +71,7 @@ export function UserIdCard({ user }: UserIdCardProps) {
         </div>
 
         {/* Payment Status */}
-        <div className="pt-4 border-t border-border/50">
+        <div className="pt-4 border-t border-border/50 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <CreditCard className="w-5 h-5 text-muted-foreground" />
@@ -93,6 +93,25 @@ export function UserIdCard({ user }: UserIdCardProps) {
               )}
             </span>
           </div>
+
+          {user.payment_status === 'PAID' && user.payment_method !== 'NONE' && (
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-2">
+                {user.payment_method === 'CASH' ? (
+                  <Banknote className="w-4 h-4 text-success" />
+                ) : (
+                  <Smartphone className="w-4 h-4 text-primary" />
+                )}
+                <span className="text-muted-foreground">
+                  {user.payment_method === 'CASH' ? 'Cash' : 'GPay'}
+                </span>
+              </div>
+              <span className="text-foreground">
+                Received by: <strong>{user.payment_receiver}</strong>
+              </span>
+            </div>
+          )}
+
           <p className="text-right text-xl font-heading font-bold text-foreground mt-2">
             ₹{user.amount.toLocaleString()}
           </p>

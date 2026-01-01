@@ -1,4 +1,5 @@
 export type UserRole = 'owner' | 'admin' | 'user';
+export type PaymentMethod = 'CASH' | 'GPAY' | 'NONE';
 
 export interface User {
   id: string;
@@ -8,6 +9,8 @@ export interface User {
   bus_number: string;
   seat_number?: string;
   payment_status: 'PAID' | 'UNPAID';
+  payment_method: PaymentMethod;
+  payment_receiver?: string;
   amount: number;
   created_at: string;
 }
@@ -33,3 +36,9 @@ export const OWNER_CREDENTIALS = {
 
 // Admin ID (password stored in database/state)
 export const ADMIN_ID = '03012026';
+
+// Payment receivers list
+export const PAYMENT_RECEIVERS = {
+  CASH: ['Rajesh', 'Sunil', 'Arun'],
+  GPAY: ['Owner GPay', 'Admin GPay'],
+};

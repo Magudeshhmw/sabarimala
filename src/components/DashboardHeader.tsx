@@ -58,8 +58,8 @@ export function DashboardHeader() {
             <LogOut className="w-4 h-4" />
             <span className="hidden sm:inline">Logout</span>
           </Button>
-        </div>
-      </div>
-    </header>
+        </div >
+      </div >
+    </header >
   );
 }

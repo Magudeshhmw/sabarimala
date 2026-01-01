@@ -5,12 +5,6 @@ import { read, utils } from 'xlsx';
 import { Upload } from 'lucide-react';
 import { toast } from 'sonner';
 
-// ... (inside the component)
-
-// Removed duplicate logic
-
-// ... but wait, I can't just inject this huge block without context. 
-// I will restart this replacement to be cleaner and split into imports and logic.
 import { DashboardHeader } from '@/components/DashboardHeader';
 import { StatCard } from '@/components/StatCard';
 import { MemberTable } from '@/components/MemberTable';
@@ -18,7 +12,6 @@ import { AddMemberForm } from '@/components/AddMemberForm';
 import { AdminPasswordForm } from '@/components/AdminPasswordForm';
 import { Users, CreditCard, IndianRupee, AlertCircle } from 'lucide-react';
 
-// Destructure addUser as well
 export default function OwnerDashboard() {
   const { user, users, addUser } = useAuth();
   const navigate = useNavigate();
@@ -85,7 +78,6 @@ export default function OwnerDashboard() {
       toast.error('Error parsing Excel file');
     }
   };
-
   if (!user || user.role !== 'owner') return null;
 
   const totalMembers = users.length;
@@ -96,7 +88,6 @@ export default function OwnerDashboard() {
   return (
     <div className="min-h-screen bg-background">
       <DashboardHeader />
-
       <main className="container mx-auto px-4 py-6 space-y-6">
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

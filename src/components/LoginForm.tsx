@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, EyeOff, LogIn, Mountain } from 'lucide-react';
+import { Eye, EyeOff, LogIn } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export function LoginForm() {
@@ -19,7 +19,6 @@ export function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!userId.trim() || !password.trim()) {
       toast({
         title: 'Error',
@@ -35,7 +34,6 @@ export function LoginForm() {
     await new Promise(resolve => setTimeout(resolve, 500));
 
     const result = login(userId.trim(), password.trim());
-
     setIsLoading(false);
 
     if (result.success) {
@@ -43,7 +41,6 @@ export function LoginForm() {
         title: 'Welcome!',
         description: 'Login successful. Redirecting...',
       });
-
       // Route based on role
       if (userId === '8132381323') {
         navigate('/owner');
@@ -67,7 +64,6 @@ export function LoginForm() {
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-secondary/10 rounded-full blur-3xl" />
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
       </div>
-
       <Card className="w-full max-w-md card-elevated animate-scale-in relative">
         <CardHeader className="text-center pb-2">
           <div className="mx-auto w-24 h-24 rounded-full bg-secondary/10 flex items-center justify-center mb-4 p-4">
@@ -80,7 +76,6 @@ export function LoginForm() {
             Team Management System
           </CardDescription>
         </CardHeader>
-
         <CardContent className="pt-6">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
@@ -97,7 +92,6 @@ export function LoginForm() {
                 autoComplete="username"
               />
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="password" className="text-sm font-medium">
                 Password
@@ -121,7 +115,6 @@ export function LoginForm() {
                 </button>
               </div>
             </div>
-
             <Button
               type="submit"
               className="w-full h-12 btn-saffron text-base"
@@ -140,7 +133,6 @@ export function LoginForm() {
               )}
             </Button>
           </form>
-
           <div className="mt-6 pt-6 border-t border-border/50">
             <p className="text-xs text-center text-muted-foreground">
               <strong>Devotees:</strong> Use your mobile number as ID and last 4 digits as password

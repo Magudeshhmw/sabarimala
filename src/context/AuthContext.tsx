@@ -243,7 +243,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [toast]);
 
-
   const getUserByMobile = useCallback((mobile: string): User | undefined => {
     return users.find(u => u.mobile_number === mobile);
   }, [users]);

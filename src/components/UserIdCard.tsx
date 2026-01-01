@@ -19,7 +19,6 @@ export function UserIdCard({ user }: UserIdCardProps) {
         <p className="text-muted-foreground text-sm mt-1 uppercase tracking-widest">Devotee ID Card</p>
       </div>
 
-
       {/* Content */}
       <div className="p-6 space-y-4">
         {/* Name */}
@@ -56,40 +55,6 @@ export function UserIdCard({ user }: UserIdCardProps) {
           </div>
         </div>
 
-        {/* Payment Status */}
-        <div className="pt-4 border-t border-border/50 space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <CreditCard className="w-5 h-5 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Payment Status</span>
-            </div>
-            <span className={`font-semibold flex items-center gap-1.5 ${user.payment_status === 'PAID' ? 'text-success' : 'text-destructive'
-              }`}>
-              {user.payment_status === 'PAID' ? (
-                <>
-                  <CheckCircle className="w-5 h-5" />
-                  PAID
-                </>
-              ) : (
-                <>
-                  <XCircle className="w-5 h-5" />
-                  UNPAID
-                </>
-              )}
-            </span>
-          </div>
-
-
-
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div className={`py-4 text-center text-sm font-semibold ${user.payment_status === 'PAID'
-        ? 'bg-success/15 text-success'
-        : 'bg-destructive/15 text-destructive'
-        }`}>
-        {user.payment_status === 'PAID' ? '✓ CONFIRMED' : '⚠ PENDING PAYMENT'}
       </div>
     </div>
   );

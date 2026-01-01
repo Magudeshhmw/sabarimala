@@ -37,7 +37,6 @@ export function AdminPasswordForm() {
     }
 
     const success = await updateAdminPassword(newPassword);
-
     if (success) {
       toast({
         title: 'Password Updated',
@@ -45,6 +44,7 @@ export function AdminPasswordForm() {
       });
       setNewPassword('');
       setConfirmPassword('');
+
     }
   };
 

@@ -1,6 +1,5 @@
-import { utils, writeFile } from 'xlsx';
-
 import { useState } from 'react';
+import { utils, writeFile } from 'xlsx';
 import { User, PaymentMethod } from '@/types/auth';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -42,23 +41,29 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
   const [search, setSearch] = useState('');
   const [filterPayment, setFilterPayment] = useState<string>('all');
   const [filterBus, setFilterBus] = useState<string>('all');
+  const [filterReferral, setFilterReferral] = useState<string>('all');
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [editForm, setEditForm] = useState<Partial<User>>({});
   const [deleteConfirm, setDeleteConfirm] = useState<User | null>(null);
 
   const busNumbers = [...new Set(users.map(u => u.bus_number))].sort();
+  // Filter out empty/null referrals and get unique list
+  const referrals = [...new Set(users.map(u => u.referral).filter(r => r && r.trim() !== ''))].sort();
 
   const filteredUsers = users.filter(user => {
     const matchesSearch =
       user.name.toLowerCase().includes(search.toLowerCase()) ||
       user.mobile_number.includes(search) ||
-      user.bag_number.toLowerCase().includes(search.toLowerCase());
+      user.bag_number.toLowerCase().includes(search.toLowerCase()) ||
+      (user.referral && user.referral.toLowerCase().includes(search.toLowerCase()));
 
     const matchesPayment = filterPayment === 'all' || user.payment_status === filterPayment;
     const matchesBus = filterBus === 'all' || user.bus_number === filterBus;
+    const matchesReferral = filterReferral === 'all' || user.referral === filterReferral;
 
-    return matchesSearch && matchesPayment && matchesBus;
+    return matchesSearch && matchesPayment && matchesBus && matchesReferral;
   });
+
   const handleExport = () => {
     const exportData = filteredUsers.map(u => {
       // Handle Payment Receiver privacy for Admin
@@ -73,8 +78,6 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
         'Bag Number': u.bag_number,
         'Bus Number': u.bus_number,
         'Payment Status': u.payment_status,
-        'Payment Method': u.payment_method,
-        'Received By': receiver,
         'Amount': u.amount,
         'Referral': u.referral || '-'
       };
@@ -92,8 +95,6 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
       { wch: 10 }, // Bag
       { wch: 10 }, // Bus
       { wch: 12 }, // Status
-      { wch: 10 }, // Method
-      { wch: 15 }, // Receiver
       { wch: 10 }, // Amount
       { wch: 15 }  // Referral
     ];
@@ -199,34 +200,6 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
 
   return (
     <div className="space-y-4">
-      {/* Bus Stats Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        {/* All Buses Card */}
-
-
-        {/* Individual Bus Cards */}
-        {busNumbers.map(bus => {
-          const count = users.filter(u => u.bus_number === bus).length;
-          return (
-            <div
-              key={bus}
-              onClick={() => setFilterBus(bus)}
-              className={`cursor-pointer p-4 rounded-xl border transition-all hover:shadow-md ${filterBus === bus ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-border bg-card'
-                }`}
-            >
-              <div className="flex justify-between items-start mb-2">
-                <span className="text-sm text-muted-foreground font-medium">Bus {bus}</span>
-                <div className={`p-2 rounded-lg ${filterBus === bus ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}>
-                  <Bus className="w-4 h-4" />
-                </div>
-              </div>
-              <div className="text-2xl font-bold font-heading">{count}</div>
-              <div className="text-xs text-muted-foreground mt-1">Devotees</div>
-            </div>
-          );
-        })}
-      </div>
-
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -263,6 +236,18 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
             </SelectContent>
           </Select>
 
+          <Select value={filterReferral} onValueChange={setFilterReferral}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Referral" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Referrals</SelectItem>
+              {referrals.map(ref => (
+                <SelectItem key={ref} value={ref}>{ref}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           <Button variant="outline" onClick={handleExport} className="gap-2">
             <Download className="w-4 h-4" />
             <span className="hidden sm:inline">Export</span>
@@ -279,7 +264,7 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
               <TableHead>Bag #</TableHead>
               <TableHead>Bus</TableHead>
               <TableHead>Payment</TableHead>
-              <TableHead>Method</TableHead>
+              <TableHead>Referral</TableHead>
               <TableHead className="text-right">Amount</TableHead>
               {(canEdit || canDelete) && <TableHead className="text-right">Actions</TableHead>}
             </TableRow>
@@ -303,21 +288,7 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
                       {user.payment_status}
                     </span>
                   </TableCell>
-                  <TableCell>
-                    {user.payment_method === 'CASH' && (
-                      <span className="flex items-center gap-1 text-success text-sm">
-                        <Banknote className="w-4 h-4" /> Cash
-                      </span>
-                    )}
-                    {user.payment_method === 'GPAY' && (
-                      <span className="flex items-center gap-1 text-primary text-sm">
-                        <Smartphone className="w-4 h-4" /> GPay
-                      </span>
-                    )}
-                    {user.payment_method === 'NONE' && (
-                      <span className="text-muted-foreground text-sm">-</span>
-                    )}
-                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{user.referral || '-'}</TableCell>
                   <TableCell className="text-right font-medium">₹{user.amount.toLocaleString()}</TableCell>
                   {(canEdit || canDelete) && (
                     <TableCell className="text-right">
@@ -365,7 +336,6 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
               Update the devotee's details below.
             </DialogDescription>
           </DialogHeader>
-
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="edit-name">Full Name</Label>

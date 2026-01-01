@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { PaymentMethod } from '@/types/auth'; // Removed PAYMENT_RECEIVERS
+import { PaymentMethod } from '@/types/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -64,12 +64,9 @@ export function AddMemberForm() {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  // ... (existing code)
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validation (keep logic same)
     if (!formData.name.trim() || !formData.mobile_number.trim() || !formData.bag_number.trim() || !formData.bus_number.trim()) {
       toast({
         title: 'Validation Error',
@@ -327,51 +324,53 @@ export function AddMemberForm() {
                     )}
                   </div>
 
-                  {isAddingReceiver ? (
-                    <div className="space-y-2 p-2 border rounded-md bg-muted/20">
-                      <div className="flex gap-2">
-                        <Input
-                          value={newReceiver}
-                          onChange={(e) => setNewReceiver(e.target.value)}
-                          placeholder="New receiver name"
-                          className="h-8"
-                        />
-                        <Button type="button" size="sm" onClick={handleAddReceiver} className="h-8">
-                          <Plus className="w-4 h-4" />
-                        </Button>
+                  {
+                    isAddingReceiver ? (
+                      <div className="space-y-2 p-2 border rounded-md bg-muted/20">
+                        <div className="flex gap-2">
+                          <Input
+                            value={newReceiver}
+                            onChange={(e) => setNewReceiver(e.target.value)}
+                            placeholder="New receiver name"
+                            className="h-8"
+                          />
+                          <Button type="button" size="sm" onClick={handleAddReceiver} className="h-8">
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <div className="space-y-1 max-h-32 overflow-y-auto">
+                          {receivers.map(r => (
+                            <div key={r} className="flex items-center justify-between text-sm px-2 py-1 bg-background rounded border">
+                              <span>{r}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteReceiver(r)}
+                                className="text-destructive hover:text-destructive/80"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      <div className="space-y-1 max-h-32 overflow-y-auto">
-                        {receivers.map(r => (
-                          <div key={r} className="flex items-center justify-between text-sm px-2 py-1 bg-background rounded border">
-                            <span>{r}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteReceiver(r)}
-                              className="text-destructive hover:text-destructive/80"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <Select
-                      value={formData.payment_receiver}
-                      onValueChange={(value) => setFormData({ ...formData, payment_receiver: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select who received payment" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {receivers.map((receiver) => (
-                          <SelectItem key={receiver} value={receiver}>
-                            {receiver}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
+                    ) : (
+                      <Select
+                        value={formData.payment_receiver}
+                        onValueChange={(value) => setFormData({ ...formData, payment_receiver: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select who received payment" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {receivers.map((receiver) => (
+                            <SelectItem key={receiver} value={receiver}>
+                              {receiver}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )
+                  }
                 </div>
               )}
             </>

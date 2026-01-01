@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { PaymentMethod, PAYMENT_RECEIVERS } from '@/types/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,12 +15,11 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, Banknote, Smartphone } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export function AddMemberForm() {
@@ -33,8 +33,31 @@ export function AddMemberForm() {
     bus_number: '',
     seat_number: '',
     payment_status: 'UNPAID' as 'PAID' | 'UNPAID',
+    payment_method: 'NONE' as PaymentMethod,
+    payment_receiver: '',
     amount: 2500,
   });
+
+  const handlePaymentStatusChange = (status: 'PAID' | 'UNPAID') => {
+    if (status === 'UNPAID') {
+      setFormData({ 
+        ...formData, 
+        payment_status: status, 
+        payment_method: 'NONE',
+        payment_receiver: '' 
+      });
+    } else {
+      setFormData({ ...formData, payment_status: status });
+    }
+  };
+
+  const handlePaymentMethodChange = (method: PaymentMethod) => {
+    setFormData({ 
+      ...formData, 
+      payment_method: method,
+      payment_receiver: '' 
+    });
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,6 +99,24 @@ export function AddMemberForm() {
       return;
     }
 
+    if (formData.payment_status === 'PAID' && formData.payment_method === 'NONE') {
+      toast({
+        title: 'Validation Error',
+        description: 'Please select a payment method for paid members',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (formData.payment_status === 'PAID' && !formData.payment_receiver) {
+      toast({
+        title: 'Validation Error',
+        description: 'Please select who received the payment',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     addUser(formData);
     
     toast({
@@ -90,10 +131,16 @@ export function AddMemberForm() {
       bus_number: '',
       seat_number: '',
       payment_status: 'UNPAID',
+      payment_method: 'NONE',
+      payment_receiver: '',
       amount: 2500,
     });
     setOpen(false);
   };
+
+  const receivers = formData.payment_method !== 'NONE' 
+    ? PAYMENT_RECEIVERS[formData.payment_method] 
+    : [];
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -103,7 +150,7 @@ export function AddMemberForm() {
           Add Member
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-heading">Add New Member</DialogTitle>
           <DialogDescription>
@@ -180,7 +227,7 @@ export function AddMemberForm() {
             <Label>Payment Status</Label>
             <Select
               value={formData.payment_status}
-              onValueChange={(value: 'PAID' | 'UNPAID') => setFormData({ ...formData, payment_status: value })}
+              onValueChange={handlePaymentStatusChange}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -192,14 +239,69 @@ export function AddMemberForm() {
             </Select>
           </div>
 
-          <DialogFooter>
+          {formData.payment_status === 'PAID' && (
+            <>
+              <div className="space-y-2">
+                <Label>Payment Method *</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => handlePaymentMethodChange('CASH')}
+                    className={`flex items-center justify-center gap-2 p-3 rounded-lg border-2 transition-all ${
+                      formData.payment_method === 'CASH'
+                        ? 'border-success bg-success/10 text-success'
+                        : 'border-border hover:border-muted-foreground'
+                    }`}
+                  >
+                    <Banknote className="w-5 h-5" />
+                    <span className="font-medium">Cash</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handlePaymentMethodChange('GPAY')}
+                    className={`flex items-center justify-center gap-2 p-3 rounded-lg border-2 transition-all ${
+                      formData.payment_method === 'GPAY'
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border hover:border-muted-foreground'
+                    }`}
+                  >
+                    <Smartphone className="w-5 h-5" />
+                    <span className="font-medium">GPay</span>
+                  </button>
+                </div>
+              </div>
+
+              {formData.payment_method !== 'NONE' && (
+                <div className="space-y-2">
+                  <Label>Received By *</Label>
+                  <Select
+                    value={formData.payment_receiver}
+                    onValueChange={(value) => setFormData({ ...formData, payment_receiver: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select who received payment" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {receivers.map((receiver) => (
+                        <SelectItem key={receiver} value={receiver}>
+                          {receiver}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </>
+          )}
+
+          <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
             <Button type="submit" className="btn-saffron">
               Add Member
             </Button>
-          </DialogFooter>
+          </div>
         </form>
       </DialogContent>
     </Dialog>

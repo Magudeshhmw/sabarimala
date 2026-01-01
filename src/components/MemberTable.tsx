@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -22,7 +23,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -41,6 +41,7 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
   const [filterPayment, setFilterPayment] = useState<string>('all');
   const [filterBus, setFilterBus] = useState<string>('all');
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editForm, setEditForm] = useState<Partial<User>>({});
   const [deleteConfirm, setDeleteConfirm] = useState<User | null>(null);
 
   const busNumbers = [...new Set(users.map(u => u.bus_number))].sort();
@@ -93,6 +94,31 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
       title: 'Payment Status Updated',
       description: `${user.name}'s payment marked as ${newStatus}`,
     });
+  };
+
+  const handleEditOpen = (user: User) => {
+    setEditingUser(user);
+    setEditForm({
+      name: user.name,
+      mobile_number: user.mobile_number,
+      bag_number: user.bag_number,
+      bus_number: user.bus_number,
+      seat_number: user.seat_number || '',
+      payment_status: user.payment_status,
+      amount: user.amount,
+    });
+  };
+
+  const handleEditSave = () => {
+    if (editingUser && editForm.name && editForm.mobile_number) {
+      updateUser(editingUser.id, editForm);
+      toast({
+        title: 'Member Updated',
+        description: `${editForm.name}'s details have been updated`,
+      });
+      setEditingUser(null);
+      setEditForm({});
+    }
   };
 
   const handleDelete = () => {
@@ -204,7 +230,7 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 text-muted-foreground hover:text-primary"
-                            onClick={() => setEditingUser(user)}
+                            onClick={() => handleEditOpen(user)}
                           >
                             <Edit2 className="w-4 h-4" />
                           </Button>
@@ -233,6 +259,104 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
         Showing {filteredUsers.length} of {users.length} members
       </p>
 
+      {/* Edit Member Dialog */}
+      <Dialog open={!!editingUser} onOpenChange={() => setEditingUser(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading">Edit Member</DialogTitle>
+            <DialogDescription>
+              Update the devotee's details below.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-name">Full Name</Label>
+              <Input
+                id="edit-name"
+                value={editForm.name || ''}
+                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-mobile">Mobile Number</Label>
+              <Input
+                id="edit-mobile"
+                value={editForm.mobile_number || ''}
+                onChange={(e) => setEditForm({ ...editForm, mobile_number: e.target.value.replace(/\D/g, '').slice(0, 10) })}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-bag">Bag Number</Label>
+                <Input
+                  id="edit-bag"
+                  value={editForm.bag_number || ''}
+                  onChange={(e) => setEditForm({ ...editForm, bag_number: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-bus">Bus Number</Label>
+                <Input
+                  id="edit-bus"
+                  value={editForm.bus_number || ''}
+                  onChange={(e) => setEditForm({ ...editForm, bus_number: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-seat">Seat Number</Label>
+                <Input
+                  id="edit-seat"
+                  value={editForm.seat_number || ''}
+                  onChange={(e) => setEditForm({ ...editForm, seat_number: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-amount">Amount (₹)</Label>
+                <Input
+                  id="edit-amount"
+                  type="number"
+                  value={editForm.amount || 0}
+                  onChange={(e) => setEditForm({ ...editForm, amount: parseInt(e.target.value) || 0 })}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Payment Status</Label>
+              <Select
+                value={editForm.payment_status}
+                onValueChange={(value: 'PAID' | 'UNPAID') => setEditForm({ ...editForm, payment_status: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="UNPAID">Unpaid</SelectItem>
+                  <SelectItem value="PAID">Paid</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3">
+            <Button variant="outline" onClick={() => setEditingUser(null)}>
+              Cancel
+            </Button>
+            <Button onClick={handleEditSave} className="btn-saffron">
+              Save Changes
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Delete Confirmation Dialog */}
       <Dialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
         <DialogContent>
@@ -242,14 +366,14 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
               Are you sure you want to delete <strong>{deleteConfirm?.name}</strong>? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <div className="flex justify-end gap-3 mt-4">
             <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
               Cancel
             </Button>
             <Button variant="destructive" onClick={handleDelete}>
               Delete
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

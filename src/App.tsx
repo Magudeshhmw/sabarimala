@@ -29,8 +29,8 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </div>
-            <footer className="py-2 text-center text-xs text-muted-foreground/50 border-t border-border/10">
-              Developed by Magudeshwaran
+            <footer className="py-6 text-center text-lg font-bold text-primary border-t border-border/20 bg-muted/10">
+              Developed by Magudeshwaran Hariharan
             </footer>
           </div>
         </BrowserRouter>

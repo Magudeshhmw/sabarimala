@@ -5,7 +5,7 @@ import { DashboardHeader } from '@/components/DashboardHeader';
 import { UserIdCard } from '@/components/UserIdCard';
 
 export default function UserDashboard() {
-  const { user, getUserByMobile } = useAuth();
+  const { user, getUsersByMobile } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -16,9 +16,9 @@ export default function UserDashboard() {
 
   if (!user || user.role !== 'user' || !user.mobile_number) return null;
 
-  const userData = getUserByMobile(user.mobile_number);
+  const userDatum = getUsersByMobile(user.mobile_number);
 
-  if (!userData) {
+  if (!userDatum || userDatum.length === 0) {
     return (
       <div className="min-h-screen bg-background">
         <DashboardHeader />
@@ -44,9 +44,12 @@ export default function UserDashboard() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start max-w-6xl mx-auto">
-          {/* Left Column: ID Card */}
+          {/* Left Column: ID Card (List) */}
           <div className="lg:col-span-5 space-y-6">
-            <UserIdCard user={userData} />
+            {userDatum.map((u) => (
+              <UserIdCard key={u.id} user={u} />
+            ))}
+
             <div className="text-center text-sm text-muted-foreground lg:hidden">
               <p>For any queries, please contact the organizers.</p>
             </div>

@@ -1,0 +1,6 @@
+
+    // Login in AuthContext.tsx needs to handle duplicate/null mobile numbers if we change the schema.
+    // However, for now we just want to fix the data import. 
+    // The user can decide how login works for shared numbers later (e.g. login by ID or show list).
+    // The user said "if thery enterd it will show two datas", implying they expect to see multiple results?
+    // In standard login, that's tricky. But let's fix the data first.

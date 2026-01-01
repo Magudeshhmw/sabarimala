@@ -82,7 +82,7 @@ export function BusOverview() {
             <Dialog open={!!selectedBus} onOpenChange={() => setSelectedBus(null)}>
                 <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
                     <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2 text-xl font-heading">
+                        <DialogTitle className="flex items-center gap-2 text-xl font-heading font-bold">
                             <Bus className="w-6 h-6 text-primary" />
                             Bus {selectedBus} Passenger List
                         </DialogTitle>
@@ -91,15 +91,15 @@ export function BusOverview() {
                         </DialogDescription>
                     </DialogHeader>
 
-                    <ScrollArea className="flex-1 mt-4 pr-4">
+                    <div className="flex-1 overflow-y-auto mt-4 pr-2">
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="w-[50px]">No.</TableHead>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead>Mobile</TableHead>
-                                    <TableHead>Bag</TableHead>
-                                    <TableHead className="text-right">Status</TableHead>
+                                    <TableHead className="w-[50px] font-bold">No.</TableHead>
+                                    <TableHead className="font-bold">Name</TableHead>
+                                    <TableHead className="font-bold">Mobile</TableHead>
+                                    <TableHead className="font-bold">Bag</TableHead>
+                                    <TableHead className="text-right font-bold">Status</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -121,7 +121,7 @@ export function BusOverview() {
                                 ))}
                             </TableBody>
                         </Table>
-                    </ScrollArea>
+                    </div>
                 </DialogContent>
             </Dialog>
         </div>

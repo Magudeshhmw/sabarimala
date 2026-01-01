@@ -14,6 +14,7 @@ interface AuthContextType {
   deleteUser: (id: string) => Promise<void>;
   updateAdminPassword: (newPassword: string) => Promise<boolean>;
   getUserByMobile: (mobile: string) => User | undefined;
+  getUsersByMobile: (mobile: string) => User[];
   paymentReceivers: { CASH: string[]; GPAY: string[] };
   addReceiver: (name: string, type: 'CASH' | 'GPAY') => Promise<void>;
   deleteReceiver: (name: string, type: 'CASH' | 'GPAY') => Promise<void>;
@@ -96,15 +97,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     // Check User (devotee) credentials
-    const devotee = users.find(u => u.mobile_number === id);
-    if (devotee) {
+    // We filter all users to find matches for the mobile ID
+    const matches = users.filter(u => u.mobile_number === id);
+    // If any matches found
+    if (matches.length > 0) {
+      // Just check password against the ID (last 4 chars) as requested by the user flow previously
       const expectedPassword = id.slice(-4);
       if (password === expectedPassword) {
+        // Log in as the first user found, but we will handle displaying multiple in dashboard
+        const primaryUser = matches[0];
         setUser({
-          id: devotee.id,
+          id: primaryUser.id,
           role: 'user',
-          name: devotee.name,
-          mobile_number: devotee.mobile_number
+          name: primaryUser.name,
+          mobile_number: primaryUser.mobile_number
         });
         return { success: true };
       }
@@ -247,6 +253,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return users.find(u => u.mobile_number === mobile);
   }, [users]);
 
+  const getUsersByMobile = useCallback((mobile: string): User[] => {
+    return users.filter(u => u.mobile_number === mobile);
+  }, [users]);
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -259,6 +269,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       deleteUser,
       updateAdminPassword,
       getUserByMobile,
+      getUsersByMobile,
       paymentReceivers,
       addReceiver,
       deleteReceiver,

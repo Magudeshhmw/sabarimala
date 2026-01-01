@@ -103,23 +103,7 @@ export function AddMemberForm() {
       return;
     }
 
-    if (formData.payment_status === 'PAID' && formData.payment_method === 'NONE') {
-      toast({
-        title: 'Validation Error',
-        description: 'Please select a payment method for paid members',
-        variant: 'destructive',
-      });
-      return;
-    }
 
-    if (formData.payment_status === 'PAID' && !formData.payment_receiver) {
-      toast({
-        title: 'Validation Error',
-        description: 'Please select who received the payment',
-        variant: 'destructive',
-      });
-      return;
-    }
 
     try {
       setIsLoading(true);
@@ -278,102 +262,9 @@ export function AddMemberForm() {
           </div>
 
           {formData.payment_status === 'PAID' && (
-            <>
-              <div className="space-y-2">
-                <Label>Payment Method *</Label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => handlePaymentMethodChange('CASH')}
-                    className={`flex items-center justify-center gap-2 p-3 rounded-lg border-2 transition-all ${formData.payment_method === 'CASH'
-                      ? 'border-success bg-success/10 text-success'
-                      : 'border-border hover:border-muted-foreground'
-                      }`}
-                  >
-                    <Banknote className="w-5 h-5" />
-                    <span className="font-medium">Cash</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handlePaymentMethodChange('GPAY')}
-                    className={`flex items-center justify-center gap-2 p-3 rounded-lg border-2 transition-all ${formData.payment_method === 'GPAY'
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-border hover:border-muted-foreground'
-                      }`}
-                  >
-                    <Smartphone className="w-5 h-5" />
-                    <span className="font-medium">GPay</span>
-                  </button>
-                </div>
-              </div>
-
-              {formData.payment_method !== 'NONE' && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label>Received By *</Label>
-                    {(user?.role === 'owner' || user?.role === 'admin') && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 text-xs text-muted-foreground hover:text-primary"
-                        onClick={() => setIsAddingReceiver(!isAddingReceiver)}
-                      >
-                        {isAddingReceiver ? 'Cancel' : 'Manage List'}
-                      </Button>
-                    )}
-                  </div>
-
-                  {
-                    isAddingReceiver ? (
-                      <div className="space-y-2 p-2 border rounded-md bg-muted/20">
-                        <div className="flex gap-2">
-                          <Input
-                            value={newReceiver}
-                            onChange={(e) => setNewReceiver(e.target.value)}
-                            placeholder="New receiver name"
-                            className="h-8"
-                          />
-                          <Button type="button" size="sm" onClick={handleAddReceiver} className="h-8">
-                            <Plus className="w-4 h-4" />
-                          </Button>
-                        </div>
-                        <div className="space-y-1 max-h-32 overflow-y-auto">
-                          {receivers.map(r => (
-                            <div key={r} className="flex items-center justify-between text-sm px-2 py-1 bg-background rounded border">
-                              <span>{r}</span>
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteReceiver(r)}
-                                className="text-destructive hover:text-destructive/80"
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <Select
-                        value={formData.payment_receiver}
-                        onValueChange={(value) => setFormData({ ...formData, payment_receiver: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select who received payment" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {receivers.map((receiver) => (
-                            <SelectItem key={receiver} value={receiver}>
-                              {receiver}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )
-                  }
-                </div>
-              )}
-            </>
+            <div className="p-3 bg-muted/30 rounded-lg text-sm text-muted-foreground border border-border/50">
+              <p>Payment will be marked as collected.</p>
+            </div>
           )}
 
           <div className="flex justify-end gap-3 pt-4">

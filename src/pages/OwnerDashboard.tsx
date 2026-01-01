@@ -9,8 +9,9 @@ import { DashboardHeader } from '@/components/DashboardHeader';
 import { StatCard } from '@/components/StatCard';
 import { MemberTable } from '@/components/MemberTable';
 import { AddMemberForm } from '@/components/AddMemberForm';
+import { BusOverview } from '@/components/BusOverview';
 import { AdminPasswordForm } from '@/components/AdminPasswordForm';
-import { Users, CreditCard, IndianRupee, AlertCircle } from 'lucide-react';
+import { Users, CreditCard, IndianRupee, AlertCircle, Bus } from 'lucide-react';
 
 export default function OwnerDashboard() {
   const { user, users, addUser } = useAuth();
@@ -84,18 +85,26 @@ export default function OwnerDashboard() {
   const paidCount = users.filter(u => u.payment_status === 'PAID').length;
   const unpaidCount = users.filter(u => u.payment_status === 'UNPAID').length;
   const totalAmount = users.reduce((sum, u) => sum + (u.payment_status === 'PAID' ? u.amount : 0), 0);
+  const totalBuses = new Set(users.map(u => u.bus_number)).size;
 
   return (
     <div className="min-h-screen bg-background">
       <DashboardHeader />
       <main className="container mx-auto px-4 py-6 space-y-6">
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <StatCard
             title="Total Members"
             value={totalMembers}
             icon={Users}
             description="Registered devotees"
+            variant="primary"
+          />
+          <StatCard
+            title="Total Buses"
+            value={totalBuses}
+            icon={Bus}
+            description="Active vehicles"
             variant="primary"
           />
           <StatCard
@@ -120,6 +129,11 @@ export default function OwnerDashboard() {
             variant="default"
           />
         </div>
+
+
+
+        {/* Bus Overview */}
+        <BusOverview />
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Admin Password Section */}
@@ -153,7 +167,7 @@ export default function OwnerDashboard() {
             <MemberTable canEdit canDelete />
           </div>
         </div>
-      </main>
-    </div>
+      </main >
+    </div >
   );
 }

@@ -261,7 +261,7 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
             <TableRow className="bg-muted/30">
               <TableHead>Name</TableHead>
               <TableHead>Mobile</TableHead>
-              <TableHead>Bag #</TableHead>
+              <TableHead>Bag</TableHead>
               <TableHead>Bus</TableHead>
               <TableHead>Payment</TableHead>
               <TableHead>Referral</TableHead>

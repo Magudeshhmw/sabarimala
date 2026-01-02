@@ -27,7 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Edit2, Trash2, Search, Download, Filter, Banknote, Smartphone, Users, Bus } from 'lucide-react';
+import { Edit2, Trash2, Search, Download, Filter, Banknote, Smartphone, Users, Bus, ArrowUpDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface MemberTableProps {
@@ -42,6 +42,9 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
   const [filterPayment, setFilterPayment] = useState<string>('all');
   const [filterBus, setFilterBus] = useState<string>('all');
   const [filterReferral, setFilterReferral] = useState<string>('all');
+  const [filterYathirai, setFilterYathirai] = useState<string>('all');
+  const [filterDiscount, setFilterDiscount] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<string>('bag_number');
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [editForm, setEditForm] = useState<Partial<User>>({});
   const [deleteConfirm, setDeleteConfirm] = useState<User | null>(null);
@@ -50,19 +53,41 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
   // Filter out empty/null referrals and get unique list
   const referrals = [...new Set(users.map(u => u.referral).filter(r => r && r.trim() !== ''))].sort();
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch =
-      (user.name && user.name.toLowerCase().includes(search.toLowerCase())) ||
-      (user.mobile_number && user.mobile_number.includes(search)) ||
-      (user.bag_number && user.bag_number.toLowerCase().includes(search.toLowerCase())) ||
-      (user.referral && user.referral.toLowerCase().includes(search.toLowerCase()));
+  // Yathirai options - 1 and 2 only as requested
+  const yathiraiOptions = ['1', '2'];
 
-    const matchesPayment = filterPayment === 'all' || user.payment_status === filterPayment;
-    const matchesBus = filterBus === 'all' || user.bus_number === filterBus;
-    const matchesReferral = filterReferral === 'all' || user.referral === filterReferral;
+  const filteredUsers = users
+    .filter(user => {
+      const matchesSearch =
+        (user.name && user.name.toLowerCase().includes(search.toLowerCase())) ||
+        (user.mobile_number && user.mobile_number.includes(search)) ||
+        (user.bag_number && user.bag_number.toLowerCase().includes(search.toLowerCase())) ||
+        (user.referral && user.referral.toLowerCase().includes(search.toLowerCase()));
 
-    return matchesSearch && matchesPayment && matchesBus && matchesReferral;
-  });
+      const matchesPayment = filterPayment === 'all' || user.payment_status === filterPayment;
+      const matchesBus = filterBus === 'all' || user.bus_number === filterBus;
+      const matchesReferral = filterReferral === 'all' || user.referral === filterReferral;
+      const matchesYathirai = filterYathirai === 'all' || user.yathirai_count === filterYathirai;
+
+      const hasDiscount = (user.discount || 0) > 0;
+      const matchesDiscount = filterDiscount === 'all' ||
+        (filterDiscount === 'discounted' ? hasDiscount : !hasDiscount);
+
+      return matchesSearch && matchesPayment && matchesBus && matchesReferral && matchesYathirai && matchesDiscount;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'name') {
+        return (a.name || '').localeCompare(b.name || '');
+      }
+      if (sortBy === 'bag_number') {
+        // Numeric sort for bag numbers
+        return (a.bag_number || '').localeCompare(b.bag_number || '', undefined, { numeric: true });
+      }
+      if (sortBy === 'bus_number') {
+        return (a.bus_number || '').localeCompare(b.bus_number || '', undefined, { numeric: true });
+      }
+      return 0;
+    });
 
   const handleExport = () => {
     const exportData = filteredUsers.map(u => {
@@ -79,6 +104,7 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
         'Bus Number': u.bus_number,
         'Payment Status': u.payment_status,
         'Amount': u.amount,
+        'Discount': u.discount || 0,
         'Referral': u.referral || '-'
       };
     });
@@ -119,6 +145,7 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
       payment_method: user.payment_method,
       payment_receiver: user.payment_receiver || '',
       amount: user.amount,
+      discount: user.discount || 0,
       yathirai_count: user.yathirai_count || '',
     });
   };
@@ -146,14 +173,6 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
 
   const handleEditSave = () => {
     if (editingUser && editForm.name && editForm.mobile_number) {
-      if (editForm.payment_status === 'PAID' && editForm.payment_method === 'NONE') {
-        toast({
-          title: 'Validation Error',
-          description: 'Please select a payment method',
-          variant: 'destructive',
-        });
-        return;
-      }
       if (editForm.payment_status === 'PAID' && !editForm.payment_receiver) {
         toast({
           title: 'Validation Error',
@@ -162,6 +181,12 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
         });
         return;
       }
+
+      // Ensure payment method is set if it's currently NONE but status is PAID
+      if (editForm.payment_status === 'PAID' && (!editForm.payment_method || editForm.payment_method === 'NONE')) {
+        editForm.payment_method = 'CASH'; // Default to CASH for backend compatibility
+      }
+
       updateUser(editingUser.id, editForm);
       toast({
         title: 'Member Updated',
@@ -185,9 +210,8 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
   };
 
   const getReceivers = () => {
-    if (!editForm.payment_method || editForm.payment_method === 'NONE') return [];
-
-    let list = paymentReceivers[editForm.payment_method] || [];
+    // Combine all receivers since we removed the method selection
+    let list = [...(paymentReceivers.CASH || []), ...(paymentReceivers.GPAY || [])];
 
     // Filter out Owner details for Admin
     if (currentUser?.role === 'admin') {
@@ -249,6 +273,41 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
             </SelectContent>
           </Select>
 
+          <Select value={filterYathirai} onValueChange={setFilterYathirai}>
+            <SelectTrigger className="w-[120px]">
+              <SelectValue placeholder="Yathirai" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Yathirai</SelectItem>
+              {yathiraiOptions.map(y => (
+                <SelectItem key={y} value={y}>{y}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={filterDiscount} onValueChange={setFilterDiscount}>
+            <SelectTrigger className="w-[120px]">
+              <SelectValue placeholder="Discount" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="discounted">Discounted</SelectItem>
+              <SelectItem value="standard">Standard</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-[140px]">
+              <ArrowUpDown className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="Sort By" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="name">Sort: Name</SelectItem>
+              <SelectItem value="bag_number">Sort: Bag No</SelectItem>
+              <SelectItem value="bus_number">Sort: Bus No</SelectItem>
+            </SelectContent>
+          </Select>
+
           <Button variant="outline" onClick={handleExport} className="gap-2">
             <Download className="w-4 h-4" />
             <span className="hidden sm:inline">Export</span>
@@ -267,6 +326,7 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
               <TableHead>Payment</TableHead>
               <TableHead>Referral</TableHead>
               <TableHead>Yathirai</TableHead>
+              <TableHead className="text-right">Discount</TableHead>
               <TableHead className="text-right">Amount</TableHead>
               {(canEdit || canDelete) && <TableHead className="text-right">Actions</TableHead>}
             </TableRow>
@@ -292,6 +352,7 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">{user.referral || '-'}</TableCell>
                   <TableCell className="text-sm">{user.yathirai_count || '-'}</TableCell>
+                  <TableCell className="text-right text-muted-foreground">{user.discount ? `₹${user.discount}` : '-'}</TableCell>
                   <TableCell className="text-right font-medium">₹{user.amount.toLocaleString()}</TableCell>
                   {(canEdit || canDelete) && (
                     <TableCell className="text-right">
@@ -387,14 +448,25 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="edit-amount">Amount (₹)</Label>
-              <Input
-                id="edit-amount"
-                type="number"
-                value={editForm.amount || 0}
-                onChange={(e) => setEditForm({ ...editForm, amount: parseInt(e.target.value) || 0 })}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-amount">Amount (₹)</Label>
+                <Input
+                  id="edit-amount"
+                  type="number"
+                  value={editForm.amount || 0}
+                  onChange={(e) => setEditForm({ ...editForm, amount: parseInt(e.target.value) || 0 })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-discount">Discount (₹)</Label>
+                <Input
+                  id="edit-discount"
+                  type="number"
+                  value={editForm.discount || 0}
+                  onChange={(e) => setEditForm({ ...editForm, discount: parseInt(e.target.value) || 0 })}
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -415,35 +487,9 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
 
             {editForm.payment_status === 'PAID' && (
               <>
-                <div className="space-y-2">
-                  <Label>Payment Method</Label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => handlePaymentMethodChange('CASH')}
-                      className={`flex items-center justify-center gap-2 p-3 rounded-lg border-2 transition-all ${editForm.payment_method === 'CASH'
-                        ? 'border-success bg-success/10 text-success'
-                        : 'border-border hover:border-muted-foreground'
-                        }`}
-                    >
-                      <Banknote className="w-5 h-5" />
-                      <span className="font-medium">Cash</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handlePaymentMethodChange('GPAY')}
-                      className={`flex items-center justify-center gap-2 p-3 rounded-lg border-2 transition-all ${editForm.payment_method === 'GPAY'
-                        ? 'border-primary bg-primary/10 text-primary'
-                        : 'border-border hover:border-muted-foreground'
-                        }`}
-                    >
-                      <Smartphone className="w-5 h-5" />
-                      <span className="font-medium">GPay</span>
-                    </button>
-                  </div>
-                </div>
+                {/* Payment Method selection removed as per request */}
 
-                {editForm.payment_method && editForm.payment_method !== 'NONE' && (
+                {editForm.payment_status === 'PAID' && (
                   <div className="space-y-2">
                     <Label>Received By</Label>
                     <Select
@@ -497,6 +543,6 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </div >
   );
 }

@@ -37,6 +37,7 @@ export function AddMemberForm() {
     payment_receiver: '',
     amount: 2500,
     referral: '',
+    discount: '', // using string for input, parse to number on submit
     yathirai_count: '',
   });
 
@@ -108,7 +109,11 @@ export function AddMemberForm() {
 
     try {
       setIsLoading(true);
-      await addUser(formData);
+      await addUser({
+        ...formData,
+        amount: Number(formData.amount),
+        discount: formData.discount ? Number(formData.discount) : 0,
+      });
 
       toast({
         title: 'Member Added',
@@ -125,6 +130,7 @@ export function AddMemberForm() {
         payment_method: 'NONE',
         payment_receiver: '',
         amount: 2500,
+        discount: '',
         referral: '',
         yathirai_count: '',
       });
@@ -237,14 +243,26 @@ export function AddMemberForm() {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="amount">Amount (₹)</Label>
-            <Input
-              id="amount"
-              type="number"
-              value={formData.amount}
-              onChange={(e) => setFormData({ ...formData, amount: parseInt(e.target.value) || 0 })}
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="amount">Amount (₹)</Label>
+              <Input
+                id="amount"
+                type="number"
+                value={formData.amount}
+                onChange={(e) => setFormData({ ...formData, amount: parseInt(e.target.value) || 0 })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="discount">Discount (₹)</Label>
+              <Input
+                id="discount"
+                type="number"
+                value={formData.discount}
+                onChange={(e) => setFormData({ ...formData, discount: e.target.value })}
+                placeholder="Optional"
+              />
+            </div>
           </div>
 
           <div className="space-y-2">

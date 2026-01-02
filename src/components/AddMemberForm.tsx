@@ -23,7 +23,7 @@ import { UserPlus, Banknote, Smartphone, Plus, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export function AddMemberForm() {
-  const { addUser, users, user, paymentReceivers, addReceiver, deleteReceiver } = useAuth();
+  const { addUser, users, user } = useAuth();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -142,37 +142,9 @@ export function AddMemberForm() {
     }
   };
 
-  const [newReceiver, setNewReceiver] = useState('');
-  const [isAddingReceiver, setIsAddingReceiver] = useState(false);
 
-  const getReceivers = () => {
-    if (formData.payment_method === 'NONE') return [];
 
-    let list = paymentReceivers[formData.payment_method] || [];
 
-    // Filter out Owner details for Admin
-    if (user?.role === 'admin') {
-      list = list.filter(r => !r.toLowerCase().includes('owner'));
-    }
-
-    return list;
-  };
-
-  const receivers = getReceivers();
-
-  const handleAddReceiver = async () => {
-    if (!newReceiver.trim()) return;
-    if (formData.payment_method === 'NONE') return;
-
-    await addReceiver(newReceiver, formData.payment_method);
-    setNewReceiver('');
-    setIsAddingReceiver(false);
-  };
-
-  const handleDeleteReceiver = async (name: string) => {
-    if (formData.payment_method === 'NONE') return;
-    await deleteReceiver(name, formData.payment_method);
-  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

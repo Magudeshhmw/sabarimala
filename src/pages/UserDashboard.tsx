@@ -33,7 +33,7 @@ export default function UserDashboard() {
     <div className="min-h-screen bg-background">
       <DashboardHeader />
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-4 sm:py-8">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-heading font-bold text-foreground">
             Your Yatra Details
@@ -57,7 +57,7 @@ export default function UserDashboard() {
 
           {/* Right Column: Instructions */}
           <div className="lg:col-span-7">
-            <div className="bg-card border border-border/50 rounded-xl p-6 lg:p-8 shadow-sm space-y-8 text-left h-full">
+            <div className="bg-card border border-border/50 rounded-xl p-4 sm:p-6 lg:p-8 shadow-sm space-y-8 text-left h-full">
               <div>
                 <h3 className="text-xl font-heading font-semibold text-primary mb-4 flex items-center gap-2">
                   🧾 TAKE & COME FROM HOME – INSTRUCTION (ENGLISH)

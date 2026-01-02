@@ -7,7 +7,7 @@ interface UserIdCardProps {
 
 export function UserIdCard({ user }: UserIdCardProps) {
   return (
-    <div className="id-card max-w-sm mx-auto animate-scale-in bg-gradient-to-br from-white via-orange-50 to-orange-100 overflow-hidden shadow-2xl border border-orange-200/60">
+    <div className="id-card w-full max-w-sm mx-auto animate-scale-in bg-gradient-to-br from-white via-orange-50 to-orange-100 overflow-hidden shadow-2xl border border-orange-200/60">
       {/* Header */}
       <div className="text-center pt-10 pb-4">
         <div className="w-48 h-48 mx-auto mb-6">

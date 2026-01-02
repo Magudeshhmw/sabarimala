@@ -173,15 +173,6 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
 
   const handleEditSave = () => {
     if (editingUser && editForm.name && editForm.mobile_number) {
-      if (editForm.payment_status === 'PAID' && !editForm.payment_receiver) {
-        toast({
-          title: 'Validation Error',
-          description: 'Please select who received the payment',
-          variant: 'destructive',
-        });
-        return;
-      }
-
       // Ensure payment method is set if it's currently NONE but status is PAID
       if (editForm.payment_status === 'PAID' && (!editForm.payment_method || editForm.payment_method === 'NONE')) {
         editForm.payment_method = 'CASH'; // Default to CASH for backend compatibility
@@ -225,8 +216,8 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
+      <div className="flex flex-col xl:flex-row gap-4">
+        <div className="relative flex-1 w-full xl:w-auto">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Search by name, mobile, or bag number..."
@@ -236,7 +227,7 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
           />
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Select value={filterPayment} onValueChange={setFilterPayment}>
             <SelectTrigger className="w-[140px]">
               <Filter className="w-4 h-4 mr-2" />
@@ -486,30 +477,9 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
             </div>
 
             {editForm.payment_status === 'PAID' && (
-              <>
-                {/* Payment Method selection removed as per request */}
-
-                {editForm.payment_status === 'PAID' && (
-                  <div className="space-y-2">
-                    <Label>Received By</Label>
-                    <Select
-                      value={editForm.payment_receiver || ''}
-                      onValueChange={(value) => setEditForm({ ...editForm, payment_receiver: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select who received payment" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {receivers.map((receiver) => (
-                          <SelectItem key={receiver} value={receiver}>
-                            {receiver}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </>
+              <div className="p-3 bg-muted/30 rounded-lg text-sm text-muted-foreground border border-border/50">
+                <p>Payment will be marked as collected.</p>
+              </div>
             )}
           </div>
 

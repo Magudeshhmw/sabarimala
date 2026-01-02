@@ -13,6 +13,7 @@ export interface User {
   payment_receiver?: string;
   amount: number;
   referral?: string;
+  yathirai_count?: string;
   created_at: string;
 }
 

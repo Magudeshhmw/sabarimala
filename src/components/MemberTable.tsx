@@ -52,9 +52,9 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
 
   const filteredUsers = users.filter(user => {
     const matchesSearch =
-      user.name.toLowerCase().includes(search.toLowerCase()) ||
-      user.mobile_number.includes(search) ||
-      user.bag_number.toLowerCase().includes(search.toLowerCase()) ||
+      (user.name && user.name.toLowerCase().includes(search.toLowerCase())) ||
+      (user.mobile_number && user.mobile_number.includes(search)) ||
+      (user.bag_number && user.bag_number.toLowerCase().includes(search.toLowerCase())) ||
       (user.referral && user.referral.toLowerCase().includes(search.toLowerCase()));
 
     const matchesPayment = filterPayment === 'all' || user.payment_status === filterPayment;
@@ -119,6 +119,7 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
       payment_method: user.payment_method,
       payment_receiver: user.payment_receiver || '',
       amount: user.amount,
+      yathirai_count: user.yathirai_count || '',
     });
   };
 
@@ -265,6 +266,7 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
               <TableHead>Bus</TableHead>
               <TableHead>Payment</TableHead>
               <TableHead>Referral</TableHead>
+              <TableHead>Yathirai</TableHead>
               <TableHead className="text-right">Amount</TableHead>
               {(canEdit || canDelete) && <TableHead className="text-right">Actions</TableHead>}
             </TableRow>
@@ -289,6 +291,7 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
                     </span>
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">{user.referral || '-'}</TableCell>
+                  <TableCell className="text-sm">{user.yathirai_count || '-'}</TableCell>
                   <TableCell className="text-right font-medium">₹{user.amount.toLocaleString()}</TableCell>
                   {(canEdit || canDelete) && (
                     <TableCell className="text-right">
@@ -373,6 +376,15 @@ export function MemberTable({ canEdit = false, canDelete = false }: MemberTableP
                   onChange={(e) => setEditForm({ ...editForm, bus_number: e.target.value })}
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-yathirai">Yathirai Count</Label>
+              <Input
+                id="edit-yathirai"
+                value={editForm.yathirai_count || ''}
+                onChange={(e) => setEditForm({ ...editForm, yathirai_count: e.target.value })}
+              />
             </div>
 
             <div className="space-y-2">

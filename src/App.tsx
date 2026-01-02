@@ -9,6 +9,7 @@ import OwnerDashboard from "./pages/OwnerDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import UserDashboard from "./pages/UserDashboard";
 import NotFound from "./pages/NotFound";
+import { Footer } from "@/components/Footer";
 
 const queryClient = new QueryClient();
 
@@ -29,9 +30,7 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </div>
-            <footer className="py-6 text-center text-lg font-bold text-primary border-t border-border/20 bg-muted/10">
-              Developed by Magudeshwaran Hariharan
-            </footer>
+            <Footer />
           </div>
         </BrowserRouter>
       </TooltipProvider>

@@ -37,6 +37,7 @@ export function AddMemberForm() {
     payment_receiver: '',
     amount: 2500,
     referral: '',
+    yathirai_count: '',
   });
 
   const handlePaymentStatusChange = (status: 'PAID' | 'UNPAID') => {
@@ -125,6 +126,7 @@ export function AddMemberForm() {
         payment_receiver: '',
         amount: 2500,
         referral: '',
+        yathirai_count: '',
       });
       setOpen(false);
     } catch (error) {
@@ -223,6 +225,16 @@ export function AddMemberForm() {
                 placeholder="e.g., BUS-01"
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="yathirai_count">Yathirai Count</Label>
+            <Input
+              id="yathirai_count"
+              value={formData.yathirai_count}
+              onChange={(e) => setFormData({ ...formData, yathirai_count: e.target.value })}
+              placeholder="e.g., 1"
+            />
           </div>
 
           <div className="space-y-2">

@@ -45,12 +45,26 @@ export function UserIdCard({ user }: UserIdCardProps) {
             <p className="text-3xl font-bold text-blue-950 mt-1">{user.bus_number}</p>
           </div>
 
+          {/* Yathirai Count - Secondary */}
+          {/* Yathirai Count - Secondary */}
+          {user.yathirai_count && (
+            <div className="col-span-2 flex items-center justify-center gap-3 p-3 rounded-lg bg-white border border-orange-100 shadow-sm">
+              <div className="w-16 h-16 rounded-full flex items-center justify-center">
+                <img src="/yathirai_icon.png" alt="Yathirai" className="w-full h-full object-contain" />
+              </div>
+              <div className="text-center">
+                <p className="text-xs text-orange-800 font-semibold uppercase tracking-wider">Yathirai Count</p>
+                <p className="font-bold text-xl text-orange-950 font-heading">{user.yathirai_count}</p>
+              </div>
+            </div>
+          )}
+
           {/* Mobile - Secondary */}
-          <div className="col-span-2 flex items-center justify-center gap-3 p-3 rounded-lg bg-gray-50 border border-gray-100">
-            <Phone className="w-4 h-4 text-gray-500" />
+          <div className="col-span-2 flex items-center justify-center gap-3 p-3 rounded-lg bg-orange-50 border border-orange-100">
+            <Phone className="w-4 h-4 text-orange-600" />
             <div className="text-center">
-              <p className="text-xs text-muted-foreground">Mobile Number</p>
-              <p className="font-medium text-foreground">{user.mobile_number}</p>
+              <p className="text-xs text-orange-800 font-semibold uppercase tracking-wider">Mobile Number</p>
+              <p className="font-bold text-lg text-orange-950">{user.mobile_number}</p>
             </div>
           </div>
         </div>
